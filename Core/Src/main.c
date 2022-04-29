@@ -18,6 +18,10 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "tim.h"
+#include "usart.h"
+#include "usb_otg.h"
+#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -40,19 +44,12 @@
 
 /* Private variables ---------------------------------------------------------*/
 
-UART_HandleTypeDef huart3;
-
-PCD_HandleTypeDef hpcd_USB_OTG_FS;
-
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_USART3_UART_Init(void);
-static void MX_USB_OTG_FS_PCD_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -92,6 +89,8 @@ int main(void)
   MX_GPIO_Init();
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
+  MX_TIM2_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -103,8 +102,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  HAL_GPIO_TogglePin(LD1_GPIO_Port, LD1_Pin);
-	  HAL_Delay(300);
   }
   /* USER CODE END 3 */
 }
@@ -166,160 +163,173 @@ void SystemClock_Config(void)
   }
 }
 
-/**
-  * @brief USART3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_USART3_UART_Init(void)
-{
-
-  /* USER CODE BEGIN USART3_Init 0 */
-
-  /* USER CODE END USART3_Init 0 */
-
-  /* USER CODE BEGIN USART3_Init 1 */
-
-  /* USER CODE END USART3_Init 1 */
-  huart3.Instance = USART3;
-  huart3.Init.BaudRate = 115200;
-  huart3.Init.WordLength = UART_WORDLENGTH_8B;
-  huart3.Init.StopBits = UART_STOPBITS_1;
-  huart3.Init.Parity = UART_PARITY_NONE;
-  huart3.Init.Mode = UART_MODE_TX_RX;
-  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USART3_Init 2 */
-
-  /* USER CODE END USART3_Init 2 */
-
-}
-
-/**
-  * @brief USB_OTG_FS Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_USB_OTG_FS_PCD_Init(void)
-{
-
-  /* USER CODE BEGIN USB_OTG_FS_Init 0 */
-
-  /* USER CODE END USB_OTG_FS_Init 0 */
-
-  /* USER CODE BEGIN USB_OTG_FS_Init 1 */
-
-  /* USER CODE END USB_OTG_FS_Init 1 */
-  hpcd_USB_OTG_FS.Instance = USB_OTG_FS;
-  hpcd_USB_OTG_FS.Init.dev_endpoints = 6;
-  hpcd_USB_OTG_FS.Init.speed = PCD_SPEED_FULL;
-  hpcd_USB_OTG_FS.Init.dma_enable = DISABLE;
-  hpcd_USB_OTG_FS.Init.phy_itface = PCD_PHY_EMBEDDED;
-  hpcd_USB_OTG_FS.Init.Sof_enable = ENABLE;
-  hpcd_USB_OTG_FS.Init.low_power_enable = DISABLE;
-  hpcd_USB_OTG_FS.Init.lpm_enable = DISABLE;
-  hpcd_USB_OTG_FS.Init.vbus_sensing_enable = ENABLE;
-  hpcd_USB_OTG_FS.Init.use_dedicated_ep1 = DISABLE;
-  if (HAL_PCD_Init(&hpcd_USB_OTG_FS) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USB_OTG_FS_Init 2 */
-
-  /* USER CODE END USB_OTG_FS_Init 2 */
-
-}
-
-/**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_GPIO_Init(void)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOG_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : USER_Btn_Pin */
-  GPIO_InitStruct.Pin = USER_Btn_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : RMII_MDC_Pin RMII_RXD0_Pin RMII_RXD1_Pin */
-  GPIO_InitStruct.Pin = RMII_MDC_Pin|RMII_RXD0_Pin|RMII_RXD1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : RMII_REF_CLK_Pin RMII_MDIO_Pin RMII_CRS_DV_Pin */
-  GPIO_InitStruct.Pin = RMII_REF_CLK_Pin|RMII_MDIO_Pin|RMII_CRS_DV_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : LD1_Pin LD3_Pin LD2_Pin */
-  GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|LD2_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : RMII_TXD1_Pin */
-  GPIO_InitStruct.Pin = RMII_TXD1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
-  HAL_GPIO_Init(RMII_TXD1_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : USB_PowerSwitchOn_Pin */
-  GPIO_InitStruct.Pin = USB_PowerSwitchOn_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(USB_PowerSwitchOn_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : USB_OverCurrent_Pin */
-  GPIO_InitStruct.Pin = USB_OverCurrent_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : RMII_TX_EN_Pin RMII_TXD0_Pin */
-  GPIO_InitStruct.Pin = RMII_TX_EN_Pin|RMII_TXD0_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
-  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
-
-}
-
 /* USER CODE BEGIN 4 */
+volatile int count = 0;
+volatile int count2 = 0;
+volatile int count3 = 0;
+volatile int count4 = 0;
+volatile int count5 = 0;
+volatile int count6 = 0;
+volatile int count7 = 0;
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin){
+	if(GPIO_Pin == RESET_B_Pin){
+		count = 0;
+		count2 = 0;
+		count3 = 0;
+		count4 = 0;
+		count5 = 0;
+		count6 = 0;
+		count7 = 0;
+		HAL_GPIO_WritePin(OUT1_1_GPIO_Port, OUT1_1_Pin, RESET);
+		HAL_GPIO_WritePin(OUT1_2_GPIO_Port, OUT1_2_Pin, RESET);
+		HAL_GPIO_WritePin(OUT2_1_GPIO_Port, OUT2_1_Pin, RESET);
+		HAL_GPIO_WritePin(OUT2_2_GPIO_Port, OUT2_2_Pin, RESET);
+		HAL_GPIO_WritePin(OUT3_1_GPIO_Port, OUT3_1_Pin, RESET);
+		HAL_GPIO_WritePin(OUT3_2_GPIO_Port, OUT3_2_Pin, RESET);
+		HAL_GPIO_WritePin(OUT4_1_GPIO_Port, OUT4_1_Pin, RESET);
+		HAL_GPIO_WritePin(OUT4_2_GPIO_Port, OUT4_2_Pin, RESET);
+		HAL_GPIO_WritePin(OUT5_1_GPIO_Port, OUT5_1_Pin, RESET);
+		HAL_GPIO_WritePin(OUT5_2_GPIO_Port, OUT5_2_Pin, RESET);
+		HAL_GPIO_WritePin(OUT6_1_GPIO_Port, OUT6_1_Pin, RESET);
+		HAL_GPIO_WritePin(OUT6_2_GPIO_Port, OUT6_2_Pin, RESET);
+		HAL_GPIO_WritePin(OUT7_1_GPIO_Port, OUT7_1_Pin, RESET);
+		HAL_GPIO_WritePin(OUT7_2_GPIO_Port, OUT7_2_Pin, RESET);
+		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, RESET);
+	}
+	if(GPIO_Pin == IN1_Pin){
+		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, SET);
+		count++;
+		if(count == 3){
+			count = 0;
+		}
+		if(count == 0){
+			HAL_GPIO_WritePin(OUT1_1_GPIO_Port, OUT1_1_Pin, RESET);
+			HAL_GPIO_WritePin(OUT1_2_GPIO_Port, OUT1_2_Pin, RESET);
+		}
+		if(count == 1){
+			HAL_GPIO_WritePin(OUT1_1_GPIO_Port, OUT1_1_Pin, SET);
+			HAL_GPIO_WritePin(OUT1_2_GPIO_Port, OUT1_2_Pin, RESET);
+		}
+		if(count == 2){
+			HAL_GPIO_WritePin(OUT1_1_GPIO_Port, OUT1_1_Pin, RESET);
+			HAL_GPIO_WritePin(OUT1_2_GPIO_Port, OUT1_2_Pin, SET);
+		}
+	}
+	if(GPIO_Pin == IN2_Pin){
+		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, SET);
+		count2++;
+		if(count2 == 3){
+			count2 = 0;
+		}
+		if(count2 == 0){
+			HAL_GPIO_WritePin(OUT2_1_GPIO_Port, OUT2_1_Pin, RESET);
+			HAL_GPIO_WritePin(OUT2_2_GPIO_Port, OUT2_2_Pin, RESET);
+		}
+		if(count2 == 1){
+			HAL_GPIO_WritePin(OUT2_1_GPIO_Port, OUT2_1_Pin, SET);
+			HAL_GPIO_WritePin(OUT2_2_GPIO_Port, OUT2_2_Pin, RESET);
+		}
+		if(count2 == 2){
+			HAL_GPIO_WritePin(OUT1_1_GPIO_Port, OUT2_1_Pin, RESET);
+			HAL_GPIO_WritePin(OUT2_2_GPIO_Port, OUT2_2_Pin, SET);
+		}
+	}
+	if(GPIO_Pin == IN3_Pin){
+		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, SET);
+		count3++;
+		if(count3 == 3){
+			count3 = 0;
+		}
+		if(count3 == 0){
+			HAL_GPIO_WritePin(OUT3_1_GPIO_Port, OUT3_1_Pin, RESET);
+			HAL_GPIO_WritePin(OUT3_2_GPIO_Port, OUT3_2_Pin, RESET);
+		}
+		if(count3 == 1){
+			HAL_GPIO_WritePin(OUT3_1_GPIO_Port, OUT3_1_Pin, SET);
+			HAL_GPIO_WritePin(OUT3_2_GPIO_Port, OUT3_2_Pin, RESET);
+		}
+		if(count3 == 2){
+			HAL_GPIO_WritePin(OUT3_1_GPIO_Port, OUT3_1_Pin, RESET);
+			HAL_GPIO_WritePin(OUT3_2_GPIO_Port, OUT3_2_Pin, SET);
+		}
+	}
+	if(GPIO_Pin == IN4_Pin){
+		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, SET);
+		count4++;
+		if(count4 == 3){
+			count4 = 0;
+		}
+		if(count4 == 0){
+			HAL_GPIO_WritePin(OUT4_1_GPIO_Port, OUT4_1_Pin, RESET);
+			HAL_GPIO_WritePin(OUT4_2_GPIO_Port, OUT4_2_Pin, RESET);
+		}
+		if(count4 == 1){
+			HAL_GPIO_WritePin(OUT4_1_GPIO_Port, OUT4_1_Pin, SET);
+			HAL_GPIO_WritePin(OUT4_2_GPIO_Port, OUT4_2_Pin, RESET);
+		}
+		if(count4 == 2){
+			HAL_GPIO_WritePin(OUT4_1_GPIO_Port, OUT4_1_Pin, RESET);
+			HAL_GPIO_WritePin(OUT4_2_GPIO_Port, OUT4_2_Pin, SET);
+		}
+	}
+	if(GPIO_Pin == IN5_Pin){
+		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, SET);
+		count5++;
+		if(count5 == 3){
+			count5 = 0;
+		}
+		if(count5 == 0){
+			HAL_GPIO_WritePin(OUT5_1_GPIO_Port, OUT5_1_Pin, RESET);
+			HAL_GPIO_WritePin(OUT5_2_GPIO_Port, OUT5_2_Pin, RESET);
+		}
+		if(count5 == 1){
+			HAL_GPIO_WritePin(OUT5_1_GPIO_Port, OUT5_1_Pin, SET);
+			HAL_GPIO_WritePin(OUT5_2_GPIO_Port, OUT5_2_Pin, RESET);
+		}
+		if(count5 == 2){
+			HAL_GPIO_WritePin(OUT5_1_GPIO_Port, OUT5_1_Pin, RESET);
+			HAL_GPIO_WritePin(OUT5_2_GPIO_Port, OUT5_2_Pin, SET);
+		}
+	}
+	if(GPIO_Pin == IN6_Pin){
+		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, SET);
+		count6++;
+		if(count6 == 3){
+			count6 = 0;
+		}
+		if(count6 == 0){
+			HAL_GPIO_WritePin(OUT6_1_GPIO_Port, OUT6_1_Pin, RESET);
+			HAL_GPIO_WritePin(OUT6_2_GPIO_Port, OUT6_2_Pin, RESET);
+		}
+		if(count6 == 1){
+			HAL_GPIO_WritePin(OUT6_1_GPIO_Port, OUT6_1_Pin, SET);
+			HAL_GPIO_WritePin(OUT6_2_GPIO_Port, OUT6_2_Pin, RESET);
+		}
+		if(count6 == 2){
+			HAL_GPIO_WritePin(OUT6_1_GPIO_Port, OUT6_1_Pin, RESET);
+			HAL_GPIO_WritePin(OUT6_2_GPIO_Port, OUT6_2_Pin, SET);
+		}
+	}
+	if(GPIO_Pin == IN7_Pin){
+		HAL_GPIO_WritePin(LD1_GPIO_Port, LD1_Pin, SET);
+		count7++;
+		if(count7 == 3){
+			count7 = 0;
+		}
+		if(count7 == 0){
+			HAL_GPIO_WritePin(OUT7_1_GPIO_Port, OUT7_1_Pin, RESET);
+			HAL_GPIO_WritePin(OUT7_2_GPIO_Port, OUT7_2_Pin, RESET);
+		}
+		if(count7 == 1){
+			HAL_GPIO_WritePin(OUT7_1_GPIO_Port, OUT7_1_Pin, SET);
+			HAL_GPIO_WritePin(OUT7_2_GPIO_Port, OUT7_2_Pin, RESET);
+		}
+		if(count7 == 2){
+			HAL_GPIO_WritePin(OUT7_1_GPIO_Port, OUT7_1_Pin, RESET);
+			HAL_GPIO_WritePin(OUT7_2_GPIO_Port, OUT7_2_Pin, SET);
+		}
+	}
+}
 
 /* USER CODE END 4 */
 
